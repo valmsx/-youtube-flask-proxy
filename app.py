@@ -8,9 +8,11 @@ CORS(app)
 
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 
+
 @app.route("/")
 def home():
     return "YouTube Proxy API is running."
+
 
 @app.route("/search")
 def search():
@@ -33,14 +35,15 @@ def search():
 
     data = res.json()
     results = [
-    {
-        "title": item["snippet"]["title"],
-        "url": f"plugin:video:https://www.youtube.com/watch?v={item['id']['videoId']}",
-        "thumbnail": item["snippet"]["thumbnails"]["medium"]["url"]
-    }
-    for item in data.get("items", [])
-]
-return jsonify(results)
+        {
+            "title": item["snippet"]["title"],
+            "videoId": item["id"]["videoId"],
+            "thumbnail": item["snippet"]["thumbnails"]["medium"]["url"]
+        }
+        for item in data.get("items", [])
+    ]
+    return jsonify(results)
+
 
 @app.route("/msx")
 def msx():
@@ -64,16 +67,26 @@ def msx():
     data = res.json()
     msx_items = []
     for item in data.get("items", []):
+        video_id = item['id']['videoId']
+        title = item['snippet']['title']
+        thumbnail = item['snippet']['thumbnails']['medium']['url']
+
         msx_items.append({
-            "title": item["snippet"]["title"],
-            "type": "video",
-            "url": f"plugin:video:https://www.youtube.com/watch?v={item['id']['videoId']}",
-            "image": item["snippet"]["thumbnails"]["medium"]["url"]
+            "title": title,
+            "playerLabel": title,
+            "image": thumbnail,
+            "action": f"video:plugin:https://www.youtube.com/watch?v={video_id}"
         })
 
     msx_response = {
-        "title": f"Risultati: {query}",
-        "type": "list",
+        "type": "pages",
+        "headline": f"Risultati: {query}",
+        "template": {
+            "type": "separate",
+            "layout": "0,0,3,3",
+            "color": "black",
+            "imageFiller": "cover"
+        },
         "items": msx_items
     }
 
@@ -81,3 +94,7 @@ def msx():
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "*"
     return response
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
