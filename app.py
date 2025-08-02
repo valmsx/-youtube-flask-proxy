@@ -33,15 +33,14 @@ def search():
 
     data = res.json()
     results = [
-        {
-            "videoId": item["id"]["videoId"],
-            "title": item["snippet"]["title"],
-            "thumbnail": item["snippet"]["thumbnails"]["medium"]["url"]
-        }
-        for item in data.get("items", [])
-    ]
-
-    return jsonify(results)
+    {
+        "title": item["snippet"]["title"],
+        "url": f"plugin:video:https://www.youtube.com/watch?v={item['id']['videoId']}",
+        "thumbnail": item["snippet"]["thumbnails"]["medium"]["url"]
+    }
+    for item in data.get("items", [])
+]
+return jsonify(results)
 
 @app.route("/msx")
 def msx():
