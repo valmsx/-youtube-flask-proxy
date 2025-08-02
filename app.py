@@ -62,22 +62,32 @@ def msx():
         return jsonify({"error": "YouTube API error"}), 500
 
     data = res.json()
-    msx_items = []
+    items = []
     for item in data.get("items", []):
-        msx_items.append({
-            "title": item["snippet"]["title"],
-            "playerLabel": item["snippet"]["title"],
-            "image": item["snippet"]["thumbnails"]["medium"]["url"]
-            # Nessuna "action" per ora
+        video_id = item["id"]["videoId"]
+        title = item["snippet"]["title"]
+        thumbnail = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
+        action = f"video:plugin:http://msx.benzac.de/plugins/youtube.html?id={video_id}"
+
+        items.append({
+            "title": title,
+            "playerLabel": title,
+            "image": thumbnail,
+            "action": action
         })
 
     msx_response = {
-        "title": f"Risultati: {query}",
-        "type": "list",
-        "items": msx_items
+        "type": "pages",
+        "headline": "YouTube",
+        "template": {
+            "type": "separate",
+            "layout": "0,0,3,3",
+            "color": "black",
+            "imageFiller": "cover"
+        },
+        "items": items
     }
 
     response = make_response(jsonify(msx_response))
     response.headers["Content-Type"] = "application/json"
-    response.headers["Access-Control-Allow-Origin"] = "*"
     return response
