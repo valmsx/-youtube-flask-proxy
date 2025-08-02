@@ -8,11 +8,9 @@ CORS(app)
 
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 
-
 @app.route("/")
 def home():
     return "YouTube Proxy API is running."
-
 
 @app.route("/search")
 def search():
@@ -44,7 +42,6 @@ def search():
     ]
     return jsonify(results)
 
-
 @app.route("/msx")
 def msx():
     query = request.args.get("q")
@@ -67,26 +64,16 @@ def msx():
     data = res.json()
     msx_items = []
     for item in data.get("items", []):
-        video_id = item['id']['videoId']
-        title = item['snippet']['title']
-        thumbnail = item['snippet']['thumbnails']['medium']['url']
-
         msx_items.append({
-            "title": title,
-            "playerLabel": title,
-            "image": thumbnail,
-            "action": f"video:plugin:https://www.youtube.com/watch?v={video_id}"
+            "title": item["snippet"]["title"],
+            "playerLabel": item["snippet"]["title"],
+            "image": item["snippet"]["thumbnails"]["medium"]["url"]
+            # Nessuna "action" per ora
         })
 
     msx_response = {
-        "type": "pages",
-        "headline": f"Risultati: {query}",
-        "template": {
-            "type": "separate",
-            "layout": "0,0,3,3",
-            "color": "black",
-            "imageFiller": "cover"
-        },
+        "title": f"Risultati: {query}",
+        "type": "list",
         "items": msx_items
     }
 
@@ -94,7 +81,3 @@ def msx():
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "*"
     return response
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
