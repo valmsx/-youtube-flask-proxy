@@ -1,8 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
+from flask_cors import CORS
 import requests
 import os
 
 app = Flask(__name__)
+CORS(app)
 
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 
@@ -61,21 +63,22 @@ def msx():
         return jsonify({"error": "YouTube API error"}), 500
 
     data = res.json()
-    items = []
+    msx_items = []
     for item in data.get("items", []):
-        video_id = item["id"]["videoId"]
-        title = item["snippet"]["title"]
-        thumbnail = item["snippet"]["thumbnails"]["medium"]["url"]
-
-        items.append({
-            "title": title,
+        msx_items.append({
+            "title": item["snippet"]["title"],
             "type": "video",
-            "url": f"plugin:video:https://www.youtube.com/watch?v={video_id}",
-            "image": f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"
+            "url": f"plugin:video:https://www.youtube.com/watch?v={item['id']['videoId']}",
+            "image": item["snippet"]["thumbnails"]["medium"]["url"]
         })
 
-    return jsonify({
+    msx_response = {
         "title": f"Risultati: {query}",
         "type": "list",
-        "items": items
-    })
+        "items": msx_items
+    }
+
+    response = make_response(jsonify(msx_response))
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    return response
